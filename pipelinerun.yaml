@@ -1,0 +1,17 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  generateName: maven-test-pipeline-run-
+  namespace: hello-world
+spec:
+  pipelineRef:
+    name: maven-test-pipeline
+  workspaces:
+    - name: maven-settings
+      configMap:
+        name: hello-world-maven-settings
+    - name: shared-workspace
+      persistentVolumeClaim:
+        claimName: maven-source-pvc
+
