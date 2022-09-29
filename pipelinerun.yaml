@@ -1,17 +1,22 @@
----
+
+
 apiVersion: tekton.dev/v1beta1
 kind: PipelineRun
 metadata:
-  generateName: maven-test-pipeline-run-
+  generateName: lis-pipeline-run-
   namespace: hello-world
 spec:
   pipelineRef:
-    name: maven-test-pipeline
+    name: lis-pipeline
+  resources:
+    - name: hello-world-source
+      resourceRef:
+        name: hello-world-source
   workspaces:
-    - name: maven-settings
+    - name: maven-settings-xml
       configMap:
-        name: hello-world-maven-settings
-    - name: shared-workspace
+        name: hello-world-settings-xml
+    - name: pipeline-cache
       persistentVolumeClaim:
-        claimName: maven-source-pvc
+        claimName: lis-pipeline-cache-pvc
 

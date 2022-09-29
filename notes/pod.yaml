@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: eap-image
+  namespace: hello-world
+spec:
+    containers:
+      - name: web
+        image: registry.redhat.io/jboss-eap-7/eap74-openjdk11-runtime-openshift-rhel8
+    imagePullSecrets:
+      - name: image-pull-secret

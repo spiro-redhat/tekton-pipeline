@@ -1,0 +1,12 @@
+apiVersion: tekton.dev/v1alpha1
+kind: PipelineResource
+metadata:
+  name: hello-world-source
+  namespace: hello-world
+spec:
+  type: git
+  params:
+    - name: url
+      value: https://github.com/lbamford/jboss-eap-quickstarts.git
+    - name: revision
+      value: 7.4.x
