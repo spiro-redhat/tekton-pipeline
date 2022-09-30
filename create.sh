@@ -7,6 +7,7 @@ oc create -f pvc.yaml
 oc create configmap hello-world-settings-xml --from-file=settings.xml
 oc create -f pipeline-resources.yaml
 oc create -f pipeline.yaml
+oc create -f notes/task-runner.yaml 
 tkn hub install task git-clone                         
 tkn hub install task maven
 oc create -f pipelinerun.yaml

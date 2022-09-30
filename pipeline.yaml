@@ -35,13 +35,23 @@ spec:
     - name: source
       workspace: pipeline-cache
     params:
-      - name: CONTEXT_DIR
-        value: helloworld-html5
-      - name: GOALS
-        value:
-        - -DskipTests
-        - clean
-        - package
+    - name: CONTEXT_DIR
+      value: helloworld-html5
+    - name: GOALS
+      value:
+      - -DskipTests
+      - clean
+      - package
+  - name: list-workspace
+    taskRef: 
+      name: task-runner
+    runAfter:
+    - mvn-package
+    workspaces:
+    - name: pipeline-cache
+      workspace: pipeline-cache
+
+
     #- name: s2i
     #  taskRef:
     #    name: s2i
