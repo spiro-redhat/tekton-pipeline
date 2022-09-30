@@ -42,16 +42,7 @@ spec:
       - -DskipTests
       - clean
       - package
-  - name: list-workspace
-    taskRef: 
-      name: task-runner
-    runAfter:
-    - mvn-package
-    workspaces:
-    - name: pipeline-cache
-      workspace: pipeline-cache
-
-
+  
     #- name: s2i
     #  taskRef:
     #    name: s2i
