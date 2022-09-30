@@ -42,22 +42,7 @@ spec:
       - -DskipTests
       - clean
       - package
-  - name: list-directory
-    taskRef:
-      kind: Task
-      name: list-directory
-    workspaces:
-    - name: pipeline-cache
-      workspace: pipeline-cache
-    - name: maven-settings-xml
-      workspace: maven-settings-xml
-    runAfter:
-    - mvn-package
-    params:
-    - name: sub-dirs
-      value:
-      - $(workspaces.maven-settings-xml.bound)
-      - "."
+  
     
     #- name: s2i
     #  taskRef:
