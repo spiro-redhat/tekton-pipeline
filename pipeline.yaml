@@ -15,7 +15,7 @@ spec:
     taskRef:
       name: git-clone
     workspaces:
-    - name: output
+    - name: source
       workspace: pipeline-cache
     params:
     - name: url
