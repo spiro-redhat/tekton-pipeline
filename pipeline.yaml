@@ -1,66 +1,135 @@
 apiVersion: tekton.dev/v1beta1
 kind: Pipeline
 metadata:
+  labels:
+    app.kubernetes.io/instance: hello-world-app
+    pipeline.openshift.io/type: kubernetes
   name: lis-pipeline
   namespace: hello-world
 spec:
+  #workspaces:
+  # - name: pipeline-cache
+  # - name: maven-settings-xml
   resources:
   - name: hello-world-source
     type: git
-  workspaces:
-  - name: pipeline-cache
-  - name: maven-settings-xml
+  - name: intermediate-image
+    type: image
+  - name: runtime-image
+    type: image
+  params:
+  - name: PATH_CONTEXT
+    default: 'kitchen-sink'
+  - name: STORAGE_DRIVER
+    type: string
+    default: vfs
+  - name: appName
+    type: string
+    default: hello-world
+  - name: templateFileName
+    type: string
+    default: deploy-app-template.yaml
+  - name: appGroup
+    type: string
+    default: Hello
+  - name: quay-io-account
+    type: string
+    default: ""
+  - name: quay-io-repository
+    type: string
+    default: "spidee"
+  - name: quay-io-image-tag-name
+    type: string
+    default: "latest"
   tasks:
-  - name: fetch-repo
+  - name: build
     taskRef:
-      name: git-clone
-    workspaces:
-    - name: source
-      workspace: pipeline-cache
+      kind: Task
+      name: build
+    #workspaces:
+    #  - name: pipeline-cache
+    #    workspace: pipeline-cache
     params:
-    - name: url
-      value: https://github.com/lbamford/jboss-eap-quickstarts.git
-    - name: revision
-      value: 7.4.x
-    - name: deleteExisting
-      value: "true"
-  - name: mvn-package
-    taskRef:
-      name: maven
-    runAfter: 
-    - fetch-repo
-    workspaces:
-    - name: maven-settings
-      workspace: maven-settings-xml
-    - name: source
-      workspace: pipeline-cache
-    params:
-    - name: CONTEXT_DIR
-      value: helloworld-html5
-    - name: GOALS
-      value:
-      - -DskipTests
-      - clean
-      - package
-  
-    
-    #- name: s2i
-    #  taskRef:
-    #    name: s2i
-    #  runAfter:
-    #    - mvn-package
-    #  workspaces:
-    #    - name: source
-    #      workspace: shared-workspace
-    #  params:
-    #    - name: BUILDER_IMAGE
-    #      value: docker.io/spidee/eap74-openjdk11-runtime-openshift-rhel8
-    #    - name: PATH_CONTEXT
-    #      value: helloworld-html5
-    #    - name: TLSVERIFY
-    #      value: "false"
-    #    - name: LOGLEVEL
-    #      value: "10"
-    #    - name: IMAGE
-    #      value: image-registry.openshift-image-registry.svc:5000/$(context.pipelineRun.namespace)/$(context.pipelineRun.name)
-  
+      - name: STORAGE_DRIVER
+        value: $(params.STORAGE_DRIVER)
+    resources:
+      inputs:
+      - name: source
+        resource: hello-world-source
+      outputs:
+      - name: intermediate-image
+        resource: intermediate-image
+   
+ # - name: create-runtime-image
+ #   params:
+ #     - name: STORAGE_DRIVER
+ #       value: $(params.STORAGE_DRIVER)
+ #     - name: gitrepository_url
+ #       value: $(params.url)
+ #       value: $(params.gitrepository_fullname)
+ #     - name: gitrepository_fullname
+ #     - name: commit_prior_revision
+ #       value: $(params.commit_prior_revision)
+ #     - name: commit_ref
+ #       value: $(params.commit_ref)
+ #     - name: commit_id
+ #       value: $(params.commit_id)
+ #     - name: commit_date
+ #       value: $(params.commit_date)
+ #     - name: commit_message
+ #       value: $(params.commit_message)
+ #     - name: commit_author
+ #       value: $(params.commit_author)
+ #     - name: pipelineRunName
+ #       value: $(context.pipelineRun.name)
+ #     - name: pipelineName
+ #       value: $(context.pipeline.name)
+ #   resources:
+ #     inputs:
+ #     - name: intermediate-image
+ #       resource: intermediate-image
+ #     outputs:
+ #     - name: runtime-image
+ #       resource: runtime-image
+ #   taskRef:
+ #     kind: Task
+ #     name: create-runtime-image
+ #   runAfter:
+ #     - build
+ # - name: clear-resources
+ #   params:
+ #      value: $(params.appName)
+ #     - name: appName
+ #   taskRef:
+ #     kind: Task
+ #   runAfter:
+ #     name: clear-resources
+ #     - build
+ # - name: deploy-application
+ #   resources:
+ #     inputs:
+ #     - name: source
+ #       resource: app-source
+ #     - name: runtime-image
+ #       resource: runtime-image
+ #   params:
+ #     - name: templateFileName
+ #       value: $(params.templateFileName)
+ #     - name: appName
+ #       value: $(params.appName)
+ #     - name: appGroup
+ #       value: $(params.appGroup)
+ #   taskRef:
+ #     kind: Task
+ #     name: oc-process-deployment-template
+ #   runAfter:
+ #     - create-runtime-image
+ #     - clear-resources
+  #finally:
+  #- name: clear-buildah-repo-end
+  #  params:
+  #    - name: STORAGE_DRIVER
+  #      value: $(params.STORAGE_DRIVER)
+  #  taskRef:
+  #    kind: Task
+  #    name: clear-buildah-repo

@@ -30,14 +30,21 @@ oc secrets link builder 1234567-myserviceaccount-pull-secret --for=pull
 oc replace -f \
 https://raw.githubusercontent.com/jboss-container-images/jboss-eap-openshifttemplates/eap74/eap74-openjdk8-image-stream.json
 
+#Above not working [typo] used this one: 
+oc replace --force -f \
+https://raw.githubusercontent.com/jboss-container-images/jboss-eap-openshift-templates/eap74/eap74-openjdk8-image-stream.json
+
+imagestream.image.openshift.io/jboss-eap74-openjdk8-openshift replaced
+imagestream.image.openshift.io/jboss-eap74-openjdk8-runtime-openshift replaced
+
+
 # check template params with: 
 # oc describe template TEMPLATE_NAME 
 
-oc new-app --template=eap74-basic-s2i \ 1
--p IMAGE_STREAM_NAMESPACE=eap-demo \ 2
--p EAP_IMAGE_NAME=jboss-eap74-openjdk8-openshift:7.4.0 \ 3
--p EAP_RUNTIME_IMAGE_NAME=jboss-eap74-openjdk8-runtime-openshift:7.4.0 \ 4
--p SOURCE_REPOSITORY_URL=https://github.com/jboss-developer/jboss-eap-quickstarts
-\ 5
--p SOURCE_REPOSITORY_REF=7.4.x \ 6
+oc new-app --template=eap74-basic-s2i \
+-p IMAGE_STREAM_NAMESPACE=eap-demo \
+-p EAP_IMAGE_NAME=jboss-eap74-openjdk8-openshift:7.4.0 \
+-p EAP_RUNTIME_IMAGE_NAME=jboss-eap74-openjdk8-runtime-openshift:7.4.0 \
+-p SOURCE_REPOSITORY_URL=https://github.com/jboss-developer/jboss-eap-quickstarts \
+-p SOURCE_REPOSITORY_REF=7.4.x \
 -p CONTEXT_DIR=kitchensink

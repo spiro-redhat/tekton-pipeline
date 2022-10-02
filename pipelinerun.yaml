@@ -12,11 +12,20 @@ spec:
     - name: hello-world-source
       resourceRef:
         name: hello-world-source
-  workspaces:
-    - name: maven-settings-xml
-      configMap:
-        name: hello-world-settings-xml
-    - name: pipeline-cache
-      persistentVolumeClaim:
-        claimName: lis-pipeline-cache-pvc
+    - name: intermediate-image
+      resourceRef:
+        name: intermediate
+    - name: intermediate-image
+      resourceRef:
+        name: intermediate
+    - name: runtime-image
+      resourceRef:
+        name: hello-world-app
+  #workspaces:
+   # - name: maven-settings-xml
+   #   configMap:
+   #     name: hello-world-settings-xml
+   # - name: pipeline-cache
+   #   persistentVolumeClaim:
+   #     claimName: lis-pipeline-cache-pvc
 
