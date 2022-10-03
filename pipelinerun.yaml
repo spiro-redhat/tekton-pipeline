@@ -4,7 +4,8 @@ apiVersion: tekton.dev/v1beta1
 kind: PipelineRun
 metadata:
   generateName: lis-pipeline-run-
-  namespace: hello-world
+  labels:
+    app: poc
 spec:
   pipelineRef:
     name: lis-pipeline

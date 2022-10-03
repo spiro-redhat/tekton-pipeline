@@ -4,8 +4,8 @@ metadata:
   labels:
     app.kubernetes.io/instance: hello-world-app
     pipeline.openshift.io/type: kubernetes
+    app: poc
   name: lis-pipeline
-  namespace: hello-world
 spec:
   #workspaces:
   # - name: pipeline-cache
