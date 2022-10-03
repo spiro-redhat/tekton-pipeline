@@ -1,4 +1,4 @@
-apiVersion: tekton.dev/v1beta1
+apiVersion: tekton.dev/v1alpha1
 kind: Task
 metadata:
   name: build
@@ -50,7 +50,6 @@ spec:
           echo "------------------------------"
           cat env-file
           echo "------------------------------"
-          
       image: registry.redhat.io/ocp-tools-43-tech-preview/source-to-image-rhel8
       volumeMounts:
         - name: envparams
@@ -96,11 +95,13 @@ spec:
           mountPath: /gen-source
       workingDir: /gen-source
   volumes:
-    - name: pipeline-cache 
-      persistentVolumeClaim:
-        claimName: lis-pipeline-cache-pvc
+    - name: quay-auth-secret
+      secret:
+        secretName: quay-auth-secret          
     - emptyDir: {}
       name: envparams
     - emptyDir: {}
       name: gen-source
-   
+    - name: pipeline-cache
+      persistentVolumeClaim:
+        claimName: lis-pipeline-cache-pvc

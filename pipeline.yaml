@@ -10,6 +10,8 @@ spec:
   #workspaces:
   # - name: pipeline-cache
   # - name: maven-settings-xml
+  
+   
   resources:
   - name: hello-world-source
     type: git
@@ -60,10 +62,23 @@ spec:
       - name: intermediate-image
         resource: intermediate-image
    
- # - name: create-runtime-image
- #   params:
- #     - name: STORAGE_DRIVER
- #       value: $(params.STORAGE_DRIVER)
+  - name: create-runtime-image
+    runAfter:
+      - "build"
+    taskRef:
+     kind: Task
+     name: create-runtime-image
+    resources:
+      inputs:
+      - name: intermediate-image
+        resource: intermediate-image
+      outputs:
+      - name: runtime-image
+        resource: runtime-image
+    params:
+      - name: STORAGE_DRIVER
+        value: $(params.STORAGE_DRIVER)
+   
  #     - name: gitrepository_url
  #       value: $(params.url)
  #       value: $(params.gitrepository_fullname)
@@ -84,18 +99,7 @@ spec:
  #       value: $(context.pipelineRun.name)
  #     - name: pipelineName
  #       value: $(context.pipeline.name)
- #   resources:
- #     inputs:
- #     - name: intermediate-image
- #       resource: intermediate-image
- #     outputs:
- #     - name: runtime-image
- #       resource: runtime-image
- #   taskRef:
- #     kind: Task
- #     name: create-runtime-image
- #   runAfter:
- #     - build
+  
  # - name: clear-resources
  #   params:
  #      value: $(params.appName)

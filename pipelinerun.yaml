@@ -15,9 +15,6 @@ spec:
     - name: intermediate-image
       resourceRef:
         name: intermediate
-    - name: intermediate-image
-      resourceRef:
-        name: intermediate
     - name: runtime-image
       resourceRef:
         name: hello-world-app

@@ -7,8 +7,14 @@ oc create -f pvc.yaml
 oc create configmap hello-world-settings-xml --from-file=settings.xml
 oc create -f pipeline-resources.yaml
 oc create -f pipeline.yaml
+oc create -f notes/image-pull-secret.yaml 
+oc create secret generic eap7-app-secret --from-file=keystore.jks
+oc secrets link default spiro-pull-secret --for=pull
+oc secrets link builder spiro-pull-secret --for=pull
+oc replace --force -f https://raw.githubusercontent.com/jboss-container-images/jboss-eap-openshift-templates/eap74/eap74-openjdk8-image-stream.json
 #oc create -f notes/list-directory-task.yaml 
 oc create -f build.yaml
+oc create -f create-runtime-image.yaml 
 tkn hub install task git-clone -n hello-world                          
 # tkn hub install task maven -n hello-world 
 oc create -f pipelinerun.yaml
