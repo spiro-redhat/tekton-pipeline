@@ -3,25 +3,26 @@ kind: Task
 metadata:
   name: s2i-java-build
 spec:
-  params:
-    - name: PATH_CONTEXT
-      description: The location of the path to run s2i from
-      default: .
-      type: string
-    - name: TLSVERIFY
-      description: Verify the TLS on the registry endpoint (for push/pull to a non-TLS registry)
-      default: "false"
-      type: string
-    - name: OUTPUT_IMAGE_STREAM
-      type: string
-      description: The application image url in registry
-    - name: BUILDER_IMAGE
-      type: string
-      description: The builder image to use 
-      default: 'registry.access.redhat.com/openjdk/openjdk-11-rhel7'
   workspaces:
-    - name: source
+  - name: source
+  params:
+  - name: PATH_CONTEXT
+    description: The location of the path to run s2i from
+    default: .
+    type: string
+  - name: TLSVERIFY
+    description: Verify the TLS on the registry endpoint (for push/pull to a non-TLS registry)
+    default: "false"
+    type: string
+  - name: OUTPUT_IMAGE_STREAM
+    type: string
+    description: The application image url in registry
+  - name: BUILDER_IMAGE
+    type: string
+    description: The builder image to use 
+    default: 'registry.access.redhat.com/openjdk/openjdk-11-rhel7'
   stepTemplate:
+    name: spiro_test_template
     env:
     - name: POD_NAMESPACE
       valueFrom:
@@ -30,7 +31,7 @@ spec:
   steps:
     - name: generate
       image: registry.redhat.io/ocp-tools-43-tech-preview/source-to-image-rhel8
-      workingdir: $(workspaces.source.path)/target
+      workingDir: $(workspaces.source.path)/target
       command:
         - 's2i'
         - 'build'
@@ -47,7 +48,7 @@ spec:
           mountPath: /gen-source
     - name: build
       image: registry.redhat.io/rhel8/buildah
-      workingdir: /gen-source
+      workingDir: /gen-source
       command: 
         - buildah
         - bud
