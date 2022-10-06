@@ -28,4 +28,4 @@ spec:
         automated: {}
         preserveResourcesOnDeletion: false
         syncOptions:
-          - CreateNamespace=true
+          - CreateNamespace=false
