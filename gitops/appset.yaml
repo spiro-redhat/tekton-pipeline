@@ -19,6 +19,8 @@ spec:
         repoURL: https://github.com/spiro-redhat/tekton-pipeline
         targetRevision: main
         path: '{{path}}'
+        directory:
+          recurse: true
       destination:
         name: in-cluster
         namespace: '{{path.basename}}'
