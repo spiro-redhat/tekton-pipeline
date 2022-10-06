@@ -7,9 +7,10 @@ metadata:
     app: poc
   name: lis-pipeline
 spec:
-  #workspaces:
-  # - name: pipeline-cache
-  # - name: maven-settings-xml
+  workspaces:
+   - name: pipeline-cache
+   - name: maven-cache
+   - name: maven-settings
   
    
   resources:
