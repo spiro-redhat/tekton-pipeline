@@ -4,11 +4,6 @@ metadata:
   name: appset
   namespace: openshift-gitops
 spec:
-  syncPolicy:
-    automated: {}
-    preserveResourcesOnDeletion: false
-    syncOptions:
-    - CreateNamespace=true
   generators:
   - git:
       repoURL: https://github.com/spiro-redhat/tekton-pipeline
@@ -29,4 +24,7 @@ spec:
       destination:
         name: in-cluster
         namespace: '{{path.basename}}'
-      
+      syncPolicy:
+        automated: {}
+        syncOptions:
+          - CreateNamespace=true
