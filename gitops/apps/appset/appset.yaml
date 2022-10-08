@@ -15,6 +15,18 @@ spec:
       name: '{{path.basename}}'
     spec:
       project: default
+      syncPolicy:
+        syncOptions:
+          - CreateNamespace=true
+        automated:
+          prune: true
+          selfHeal: true
+        retry:
+          limit: 15
+          backoff:
+            duration: 15s
+            factor: 2
+            maxDuration: 5m 
       source:
         repoURL: https://github.com/spiro-redhat/tekton-pipeline
         targetRevision: main
@@ -24,7 +36,4 @@ spec:
       destination:
         name: in-cluster
         namespace: '{{path.basename}}'
-      syncPolicy:
-        automated: {}
-        syncOptions:
-          - CreateNamespace=true
+        
