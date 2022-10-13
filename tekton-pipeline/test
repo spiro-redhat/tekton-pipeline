@@ -1,0 +1,202 @@
+# https://redhat-scholars.github.io/tekton-tutorial/tekton-tutorial/workspaces.html
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  generateName: eap-ttf-plr- 
+  labels:
+    app: poc
+spec:
+  
+  pipelineRef:
+    name: eap-ttf-pipeline
+  workspaces:
+    - name: pipeline-cache # this workspace name must be declared in the Pipeline
+      volumeClaimTemplate:
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 10Gi
+    - name: gen-source
+      emptyDir: {} 
+---
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+ name: eap-ttf-pipeline
+ namespace: poc
+spec:
+  workspaces:
+   - name: pipeline-cache
+   - name: gen-source
+  
+  params:
+   - name: GIT_URL
+     type: string
+     default: https://  
+   - name: GIT_REVISION
+     type: string
+     default: main
+   - name: OUTPUT_IMAGE_STREAM
+     type: string
+     default: 'eap74-ttf'
+   - name: NAMESPACE
+     type: string
+     default: poc
+  tasks:
+    - name: git-clone
+      taskRef:
+        kind: Task
+        name: git-clone
+      workspaces:
+        - name: output
+          workspace: pipeline-cache
+      params:
+        - name: url
+          value: $(params.GIT_URL) 
+        - name: revision
+          value: $(params.GIT_REVISION)  
+        - name: sslVerify
+          value: "false"
+   # build task 
+    - name: build-eap-image
+      taskRef:
+        name: build-eap-image
+      params:
+        - name: IMAGE_STREAM
+          value: $(params.OUTPUT_IMAGE_STREAM)
+        - name: NAMESPACE
+          value: $(params.NAMESPACE)
+      runAfter: 
+        - git-clone  
+      workspaces:
+        - name: output
+          workspace: pipeline-cache
+        - name: gen-source
+          workspace: gen-source
+        
+---
+apiVersion: tekton.dev/v1alpha1 
+kind: Task
+metadata:
+  name: build-eap-image 
+  namespace: poc
+spec:
+    
+  workspaces:
+    - name: output
+    - name: gen-source
+      mountPath: /docker-gen
+    
+  params:
+    - name: NAMESPACE
+      type: string
+      default: poc
+    - name: TLS_VERIFY
+      type: string
+      default: 'false'
+    - name: STORAGE_DRIVER
+      type: string
+      default: vfs
+    - name: IMAGE_STREAM
+      type: string
+    - name: NAMESPACE
+      type: string
+      default: openshift
+  results:
+    - name: commit
+      description: sha signature of image 
+    - name: dockerfile
+      description: a list of buildah's repo    
+  steps:
+    - name: create-dockerfile
+      image: registry.redhat.io/ocp-tools-43-tech-preview/source-to-image-rhel8
+      command: 
+        - bin/sh 
+        - '-c'
+      args: 
+        - |-
+          echo "FROM  eap/eap74-openjdk8-runtime-openshift-rhel7:7.4.5-4" > $(workspaces.gen-source.path)/Dockerfile
+          echo "COPY $(workspaces.output.path) /usr/share/fonts/truetype" >> $(workspaces.gen-source.path)/Dockerfile
+         
+          
+    - name: build-image 
+      image: registry.redhat.io/rhel8/buildah@sha256:6a68ece207bc5fd8db2dd5cc2d0b53136236fb5178eb5b71eebe5d07a3c33d13
+      command: 
+        - buildah
+        - bud
+        - '--log-level'
+        - 'info'
+        - '--tls-verify=$(params.TLS_VERIFY)'
+        - '--storage-driver=$(params.STORAGE_DRIVER)'
+        - '--layers'
+        - '-f'
+        - '$(workspaces.gen-source.path)/Dockerfile'
+        - '--root'
+        - '/files/buildah-containers'
+        - '-t'
+        - 'image-registry.openshift-image-registry.svc:5000/$(params.NAMESPACE)/$(params.IMAGE_STREAM)'
+        - . 
+      volumeMounts:
+        - name: varlibcontainers
+          mountPath: /var/lib/containers
+      workingDir: /workspace/output
+    #  securityContext:
+    #    privileged: true
+    - name: list-image
+      image: registry.redhat.io/rhel8/buildah@sha256:6a68ece207bc5fd8db2dd5cc2d0b53136236fb5178eb5b71eebe5d07a3c33d13
+      command: 
+        - bin/sh 
+        - '-c'
+      args: 
+        - |-
+          ls -l /var/lib/containers
+      volumeMounts:
+        - name: varlibcontainers
+          mountPath: /var/lib/containers
+    - name: view-image
+      image: registry.redhat.io/rhel8/buildah@sha256:6a68ece207bc5fd8db2dd5cc2d0b53136236fb5178eb5b71eebe5d07a3c33d13
+      command:
+        - buildah
+        - images
+        - '--log-level'
+        - 'debug'
+        - '--storage-driver=$(params.STORAGE_DRIVER)'
+      resources: {} 
+      volumeMounts:
+        - name: varlibcontainers
+          mountPath: /var/lib/containers
+    #  securityContext:
+    #   privileged: true
+         
+    #- name: tag-image
+    #  image: registry.redhat.io/rhel8/buildah
+    #  command: 
+    #    - buildah
+    #    - tag 
+    #    - '--storage-driver=$(params.STORAGE_DRIVER)'
+    #    - '$(params.imageStream):latest'
+    #    - 'eap-7.4.0-ttf'        
+    - name: push-image
+    
+      image: registry.redhat.io/rhel8/buildah@sha256:6a68ece207bc5fd8db2dd5cc2d0b53136236fb5178eb5b71eebe5d07a3c33d13
+      command:
+        - buildah
+        - push
+        - '--log-level'
+        - 'debug'
+        - --tls-verify=$(params.TLS_VERIFY)
+        - 'image-registry.openshift-image-registry.svc:5000/$(params.NAMESPACE)/$(params.IMAGE_STREAM)'
+        - 'docker://image-registry.openshift-image-registry.svc:5000/$(params.NAMESPACE)/$(params.IMAGE_STREAM)'
+      volumeMounts:
+        - name: varlibcontainers
+          mountPath: /var/lib/containers
+      #securityContext: 
+      #  privileged: true
+  volumes:
+    - name: varlibcontainers
+      emptyDir: {}
+            
+      
+    
